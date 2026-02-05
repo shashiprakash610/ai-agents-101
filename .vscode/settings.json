@@ -1,7 +1,10 @@
 {
   "editor.formatOnSave": true,
-  "python.defaultInterpreterPath": "${workspaceFolder}/backend/venv/bin/python",
+  "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/bin/python",
   "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.extraPaths": [
+    "./backend"
+  ],
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   }

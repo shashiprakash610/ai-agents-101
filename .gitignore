@@ -1,5 +1,6 @@
 __pycache__/
 *.py[cod]
+*.db
 .env
 venv/
 node_modules/
@@ -24,3 +25,5 @@ backend/chroma_db/
 # OS/Editor
 .DS_Store
 .vscode/*.log
+
+backend/.env

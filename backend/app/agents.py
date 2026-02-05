@@ -68,8 +68,11 @@ def respond_with_context(
     system = """You are an investment research assistant.
 Use the tool output to answer the user.
 Be concise and structured.
-If the tool output is demo/stub data, mention it briefly.
+
+If tool_output.meta.source == "stub", mention it's demo data.
+If tool_output.meta.source == "chroma", do NOT call it demo.
 """
+
 
     user = f"""
 User question:
