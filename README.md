@@ -69,6 +69,19 @@ npm run dev
 ```
 The application will run at `http://localhost:5173`.
 
+### 3. (Optional) Streamlit UI
+
+A lightweight Streamlit interface is also available for quick testing or as an alternative frontend.
+
+```bash
+# In the project root (ensure you have dependencies installed)
+pip install streamlit requests
+# Or install from file: pip install -r frontend/streamlit/requirements.txt
+
+streamlit run frontend/streamlit/app.py
+```
+The Streamlit app will open at `http://localhost:8501`.
+
 ## 📂 Project Structure
 
 ```
