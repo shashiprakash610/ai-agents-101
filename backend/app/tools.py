@@ -15,6 +15,11 @@ def tool_internal_kb(query: str) -> Dict[str, Any]:
 
     return {"type": "internal_kb", "result": kb}
 
+from typing import Any, Dict, List, Optional
+
+from app.vectorstore import get_collection
+
+
 def tool_search_reports(
     query: str,
     user_id: str,
@@ -25,15 +30,18 @@ def tool_search_reports(
 ) -> Dict[str, Any]:
     col = get_collection()
 
-    # Multi-tenant isolation: ALWAYS filter by user_id
-    where: Dict[str, Any] = {"user_id": user_id}
+    # Build filters as a list, then convert to Chroma where-clause
+    filters: List[Dict[str, Any]] = [{"user_id": user_id}]  # ALWAYS isolate by user_id
 
     if bank:
-        where["bank"] = bank
+        filters.append({"bank": bank})
     if asset_class:
-        where["asset_class"] = asset_class
+        filters.append({"asset_class": asset_class})
     if report_id:
-        where["report_id"] = report_id
+        filters.append({"report_id": report_id})
+
+    # Chroma expects a single top-level operator when multiple filters exist
+    where: Dict[str, Any] = filters[0] if len(filters) == 1 else {"$and": filters}
 
     res = col.query(query_texts=[query], where=where, n_results=k)
 
@@ -46,3 +54,4 @@ def tool_search_reports(
         "metadatas": metas,
         "meta": {"k": k, "filters": where, "source": "chroma"},
     }
+
