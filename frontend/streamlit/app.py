@@ -85,17 +85,21 @@ with st.sidebar:
                 )
                 upload_resp.raise_for_status()
                 report_id = upload_resp.json()["report_id"]
-
+                
                 chat_resp = api_post(
                     "/chats",
                     json={"report_id": report_id, "title": uploaded_file.name},
                 )
 
-                st.session_state.chats.insert(0, chat_resp)
-                st.session_state.active_chat_id = chat_resp["chat_id"]
-                st.session_state.messages = []
+                if chat_resp is None:
+                    st.error("Failed to create chat. Check backend logs.")
+                else:
+                    st.session_state.chats.insert(0, chat_resp)
+                    st.session_state.active_chat_id = chat_resp["chat_id"]
+                    st.session_state.messages = []
+                    st.success("Chat created!")
 
-                st.success("Chat created!")
+
 
 # ----------------------------
 # Main chat area

@@ -82,7 +82,7 @@ class SendMessageRequest(BaseModel):
 #     }
 
 
-@app.post("/chats")
+@app.post("/chats", response_model=ChatSummary)
 async def create_chat(
     req: CreateChatRequest,
     user_id: str = Depends(get_user_id),
@@ -91,7 +91,7 @@ async def create_chat(
     chat_id = str(uuid.uuid4())
     title = req.title or "New chat"
 
-    # If report_id provided, ensure it belongs to this user (prevents leaking)
+    # Validate report ownership
     if req.report_id:
         cur = await db.execute(
             "SELECT report_id FROM reports WHERE report_id = ? AND user_id = ?",
@@ -102,6 +102,23 @@ async def create_chat(
         if row is None:
             raise HTTPException(status_code=404, detail="Report not found for this user")
 
+    # ✅ INSERT CHAT
+    await db.execute(
+        """
+        INSERT INTO chats(chat_id, user_id, title, report_id)
+        VALUES (?, ?, ?, ?)
+        """,
+        (chat_id, user_id, title, req.report_id),
+    )
+    await db.commit()
+
+    # ✅ RETURN CHAT
+    return {
+        "chat_id": chat_id,
+        "title": title,
+        "report_id": req.report_id,
+        "created_at": "now",
+    }
 
 
 
@@ -241,7 +258,11 @@ async def send_message(
             report_id=report_id,   # ✅ context comes from chat session
         )
 
+    if tool_out is None:
+        raise HTTPException(status_code=500, detail="Tool returned no output")
+
     answer = respond_with_context(req.message, route, tool_out)
+
 
     # Store assistant message
     await db.execute(
@@ -253,6 +274,6 @@ async def send_message(
     return {
         "chat_id": chat_id,
         "decision": decision,
-        "tool_output_meta": tool_out.get("meta", {}),
+        "tool_output_meta": tool_out.get("meta", {}) if isinstance(tool_out, dict) else {},
         "answer": answer,
     }
